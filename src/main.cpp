@@ -1,11 +1,11 @@
 #include <uWS/uWS.h>
 #include <iostream>
-#include "json.hpp"
+#include <sstream>
 #include <cmath>
+#include <string>
+#include "json.hpp"
 #include "FusionEKF.h"
 #include "tools.h"
-
-using namespace std;
 
 // for convenience
 using json = nlohmann::json;
@@ -26,8 +26,7 @@ std::string hasData(std::string s) {
 	return "";
 }
 
-int main()
-{
+int main(int argc, const char* argv[]) {
 	uWS::Hub h;
 
 	// Create a Kalman Filter instance
@@ -35,17 +34,15 @@ int main()
 
 	// used to compute the RMSE later
 	Tools tools;
-	vector<VectorXd> estimations;
-	vector<VectorXd> ground_truth;
+	std::vector<VectorXd> estimations;
+	std::vector<VectorXd> ground_truth;
 
 	h.onMessage([&fusionEKF,&tools,&estimations,&ground_truth](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
 		// "42" at the start of the message means there's a websocket message event.
 		// The 4 signifies a websocket message
 		// The 2 signifies a websocket event
 
-		if (length && length > 2 && data[0] == '4' && data[1] == '2')
-		{
-
+		if (length && (length > 2) && (data[0] == '4') && (data[1] == '2')) {
 			auto s = hasData(std::string(data));
 			if (s != "") {
 				auto j = json::parse(s);
@@ -53,13 +50,13 @@ int main()
 
 				if (event == "telemetry") {
 					// j[1] is the data JSON object
-					string sensor_measurment = j[1]["sensor_measurement"];
+					std::string sensor_measurment = j[1]["sensor_measurement"];
 					MeasurementPackage meas_package;
-					istringstream iss(sensor_measurment);
+					std::istringstream iss(sensor_measurment);
 					long long timestamp;
 
 					// reads first element from the current line
-					string sensor_type;
+					std::string sensor_type;
 					iss >> sensor_type;
 
 					if (sensor_type.compare("L") == 0) {
@@ -72,7 +69,8 @@ int main()
 						meas_package.raw_measurements_ << px, py;
 						iss >> timestamp;
 						meas_package.timestamp_ = timestamp;
-					} else if (sensor_type.compare("R") == 0) {
+					}
+					else if (sensor_type.compare("R") == 0) {
 						meas_package.sensor_type_ = MeasurementPackage::RADAR;
 						meas_package.raw_measurements_ = VectorXd(3);
 						float ro;
@@ -130,7 +128,8 @@ int main()
 					// std::cout << msg << std::endl;
 					ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
 				}
-			} else {
+			}
+			else {
 				std::string msg = "42[\"manual\",{}]";
 				ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
 			}
@@ -142,14 +141,12 @@ int main()
 	// doesn't compile :-(
 	h.onHttpRequest([](uWS::HttpResponse *res, uWS::HttpRequest req, char *data, size_t, size_t) {
 		const std::string s = "<h1>Hello world!</h1>";
-		if (req.getUrl().valueLength == 1)
-		{
+		if (req.getUrl().valueLength == 1) {
 			res->end(s.data(), s.length());
 		}
-		else
-		{
+		else {
 			// i guess this should be done more gracefully?
-		res->end(nullptr, 0);
+			res->end(nullptr, 0);
 		}
 	});
 
@@ -162,13 +159,11 @@ int main()
 		std::cout << "Disconnected" << std::endl;
 	});
 
-	int port = 4567;
-	if (h.listen(port))
-	{
+	constexpr int port = 4567;
+	if (h.listen(port)) {
 		std::cout << "Listening to port " << port << std::endl;
 	}
-	else
-	{
+	else {
 		std::cerr << "Failed to listen to port" << std::endl;
 		return -1;
 	}
