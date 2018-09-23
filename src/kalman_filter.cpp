@@ -35,7 +35,7 @@ void KalmanFilter::Update(const VectorXd &z) {
 	MatrixXd PHt = P_ * Ht;
 	MatrixXd K = PHt * Si;
 
-	//new estimate
+	// new estimate
 	x_ = x_ + (K * y);
 	long x_size = x_.size();
 	MatrixXd I = MatrixXd::Identity(x_size, x_size);
@@ -43,7 +43,7 @@ void KalmanFilter::Update(const VectorXd &z) {
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
-	//recover state parameters
+	// recover state parameters
 	float px = x_(0);
 	float py = x_(1);
 	float vx = x_(2);
@@ -51,7 +51,7 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 
 	// Equations for h_func below
 	float rho = sqrt(px * px + py * py);
-	//check division by zero
+	// check division by zero
 	if(rho < .00001) {
 		px += .001;
 		py += .001;
@@ -60,7 +60,7 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 	float phi = atan2(py, px);
 	float rho_dot = (px*vx + py*vy) / rho;
 
-	//Feed in equations above
+	// Feed in equations above
 	VectorXd H_func(3);
 	H_func << rho, phi, rho_dot;
 
@@ -79,7 +79,7 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 	MatrixXd PHt = P_ * Ht;
 	MatrixXd K = PHt * Si;
 
-	//new estimate
+	// new estimate
 	x_ = x_ + (K * y);
 	long x_size = x_.size();
 	MatrixXd I = MatrixXd::Identity(x_size, x_size);
